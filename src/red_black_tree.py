@@ -120,7 +120,7 @@ class RedBlackTree:
                     y.color = Color.BLACK
                     z.parent.parent.color = Color.RED
                     z = z.parent.parent
-                    self.render(f"insert-fixup-recolor")
+                    self.render("insert-fixup-recolor")
 
                 else:
                     if z == z.parent.right:
@@ -133,7 +133,7 @@ class RedBlackTree:
                     z.parent.color = Color.BLACK
                     z.parent.parent.color = Color.RED
                     self.right_rotate(z.parent.parent)
-                    self.render(f"insert-fixup-right-rotate")
+                    self.render("insert-fixup-right-rotate")
             else:
                 y = unwrap(z.parent.parent.left)
 
@@ -142,7 +142,7 @@ class RedBlackTree:
                     y.color = Color.BLACK
                     z.parent.parent.color = Color.RED
                     z = z.parent.parent
-                    self.render(f"insert-fixup-recolor")
+                    self.render("insert-fixup-recolor")
                 else:
                     if z == z.parent.left:
                         z = z.parent
@@ -154,14 +154,14 @@ class RedBlackTree:
                     z.parent.color = Color.BLACK
                     z.parent.parent.color = Color.RED
                     self.left_rotate(z.parent.parent)
-                    self.render(f"insert-fixup-left-rotate")
+                    self.render("insert-fixup-left-rotate")
 
             if z == self.root:
                 break
 
         if self.root.color == Color.RED:
             self.root.color = Color.BLACK
-            self.render(f"insert-fixup-recolor-root")
+            self.render("insert-fixup-recolor-root")
 
     def delete(self, key: int):
         z = self.search(key)
@@ -216,7 +216,7 @@ class RedBlackTree:
                     x.parent.color = Color.RED
                     self.left_rotate(x.parent)
                     w = unwrap(x.parent.right)
-                    self.render(f"delete-fixup-left-rotate")
+                    self.render("delete-fixup-left-rotate")
 
                 # type 2
                 assert w.left is not None
@@ -224,7 +224,7 @@ class RedBlackTree:
                 if w.left.color == Color.BLACK and w.right.color == Color.BLACK:
                     w.color = Color.RED
                     x = x.parent
-                    self.render(f"delete-fixup-recolor")
+                    self.render("delete-fixup-recolor")
                 else:
                     # type 3
                     if w.right.color == Color.BLACK:
@@ -232,7 +232,7 @@ class RedBlackTree:
                         w.color = Color.RED
                         self.right_rotate(w)
                         w = unwrap(x.parent.right)
-                        self.render(f"delete-fixup-right-rotate")
+                        self.render("delete-fixup-right-rotate")
                     # type 4
                     assert w.right is not None
                     w.color = x.parent.color
@@ -240,7 +240,7 @@ class RedBlackTree:
                     w.right.color = Color.BLACK
                     self.left_rotate(x.parent)
                     x = self.root
-                    self.render(f"delete-fixup-left-rotate")
+                    self.render("delete-fixup-left-rotate")
             else:
                 w = unwrap(x.parent.left)
 
@@ -250,7 +250,7 @@ class RedBlackTree:
                     x.parent.color = Color.RED
                     self.right_rotate(x.parent)
                     w = unwrap(x.parent.left)
-                    self.render(f"delete-fixup-right-rotate")
+                    self.render("delete-fixup-right-rotate")
 
                 # type 2
                 assert w.left is not None
@@ -259,7 +259,7 @@ class RedBlackTree:
                 if w.right.color == Color.BLACK and w.left.color == Color.BLACK:
                     w.color = Color.RED
                     x = x.parent
-                    self.render(f"delete-fixup-recolor")
+                    self.render("delete-fixup-recolor")
                 else:
 
                     # type 3
@@ -268,7 +268,7 @@ class RedBlackTree:
                         w.color = Color.RED
                         self.left_rotate(w)
                         w = unwrap(x.parent.left)
-                        self.render(f"delete-fixup-left-rotate")
+                        self.render("delete-fixup-left-rotate")
 
                     # type 4
                     assert w.left is not None
@@ -278,11 +278,11 @@ class RedBlackTree:
                     w.left.color = Color.BLACK
                     self.right_rotate(x.parent)
                     x = self.root
-                    self.render(f"delete-fixup-right-rotate")
+                    self.render("delete-fixup-right-rotate")
 
         if x.color == Color.RED:
             x.color = Color.BLACK
-            self.render(f"delete-fixup-recolor-x")
+            self.render("delete-fixup-recolor-x")
 
     def transplant(self, u: Node, v: Node):
         if u.parent is None:
