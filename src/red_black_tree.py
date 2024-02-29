@@ -1,9 +1,7 @@
-from collections import deque
 from enum import Enum, auto
 from dataclasses import dataclass
-from re import T
 from typing import TypeVar
-from jgraph import JGraph
+from jgraph import JGraph, RED, BLACK
 
 T = TypeVar("T")
 
@@ -34,8 +32,7 @@ NIL = Node(
 
 
 class RedBlackTree:
-    def __init__(self):
-        self.root = NIL
+    root = NIL
 
     def left_rotate(self, x: Node):
         y = unwrap(x.right)
@@ -80,83 +77,80 @@ class RedBlackTree:
         x.parent = y
 
     def insert(self, key: int):
-        z = Node(
+        new_node = Node(
             key,
             color=Color.RED,
             left=NIL,
             right=NIL,
         )
 
-        y: Node | None = None
+        parent: Node | None = None
         x = self.root
 
         while x != NIL:
-            y = x
-            if z.key < x.key:
-                x = unwrap(x.left)
-            else:
-                x = unwrap(x.right)
+            parent = x
+            x = unwrap(x.left if new_node.key < x.key else x.right)
 
-        z.parent = y
-        if y is None:
-            self.root = z
-        elif z.key < y.key:
-            y.left = z
+        new_node.parent = parent
+        if parent is None:
+            self.root = new_node
+        elif new_node.key < parent.key:
+            parent.left = new_node
         else:
-            y.right = z
+            parent.right = new_node
         self.render(f"insert-{key}")
-        self.insert_fixup(z)
+        self.insert_fixup(new_node)
 
-    def insert_fixup(self, z: Node):
-        while z.parent is not None and z.parent.color == Color.RED:
+    def insert_fixup(self, new_node: Node):
+        while new_node.parent is not None and new_node.parent.color == Color.RED:
 
-            assert z.parent.parent is not None
+            assert new_node.parent.parent is not None
 
-            if z.parent == z.parent.parent.left:
-                y = unwrap(z.parent.parent.right)
+            if new_node.parent == new_node.parent.parent.left:
+                uncle = unwrap(new_node.parent.parent.right)
 
-                if y.color == Color.RED:
-                    z.parent.color = Color.BLACK
-                    y.color = Color.BLACK
-                    z.parent.parent.color = Color.RED
-                    z = z.parent.parent
+                if uncle.color == Color.RED:
+                    new_node.parent.color = Color.BLACK
+                    uncle.color = Color.BLACK
+                    new_node.parent.parent.color = Color.RED
+                    new_node = new_node.parent.parent
                     self.render("insert-fixup-recolor")
 
                 else:
-                    if z == z.parent.right:
-                        z = z.parent
-                        self.left_rotate(z)
+                    if new_node == new_node.parent.right:
+                        new_node = new_node.parent
+                        self.left_rotate(new_node)
 
-                    assert z.parent is not None
-                    assert z.parent.parent is not None
+                    assert new_node.parent is not None
+                    assert new_node.parent.parent is not None
 
-                    z.parent.color = Color.BLACK
-                    z.parent.parent.color = Color.RED
-                    self.right_rotate(z.parent.parent)
+                    new_node.parent.color = Color.BLACK
+                    new_node.parent.parent.color = Color.RED
+                    self.right_rotate(new_node.parent.parent)
                     self.render("insert-fixup-right-rotate")
             else:
-                y = unwrap(z.parent.parent.left)
+                uncle = unwrap(new_node.parent.parent.left)
 
-                if y.color == Color.RED:
-                    z.parent.color = Color.BLACK
-                    y.color = Color.BLACK
-                    z.parent.parent.color = Color.RED
-                    z = z.parent.parent
+                if uncle.color == Color.RED:
+                    new_node.parent.color = Color.BLACK
+                    uncle.color = Color.BLACK
+                    new_node.parent.parent.color = Color.RED
+                    new_node = new_node.parent.parent
                     self.render("insert-fixup-recolor")
                 else:
-                    if z == z.parent.left:
-                        z = z.parent
-                        self.right_rotate(z)
+                    if new_node == new_node.parent.left:
+                        new_node = new_node.parent
+                        self.right_rotate(new_node)
 
-                    assert z.parent is not None
-                    assert z.parent.parent is not None
+                    assert new_node.parent is not None
+                    assert new_node.parent.parent is not None
 
-                    z.parent.color = Color.BLACK
-                    z.parent.parent.color = Color.RED
-                    self.left_rotate(z.parent.parent)
+                    new_node.parent.color = Color.BLACK
+                    new_node.parent.parent.color = Color.RED
+                    self.left_rotate(new_node.parent.parent)
                     self.render("insert-fixup-left-rotate")
 
-            if z == self.root:
+            if new_node == self.root:
                 break
 
         if self.root.color == Color.RED:
@@ -164,124 +158,134 @@ class RedBlackTree:
             self.render("insert-fixup-recolor-root")
 
     def delete(self, key: int):
-        z = self.search(key)
+        old_node = self.search(key)
 
-        if z == NIL:
+        if old_node == NIL:
             return
 
-        y = z
-        y_orig_color = y.color
+        y = old_node
+        y_original_color = y.color
 
         # case 1
-        if z.left == NIL:
-            x = unwrap(z.right)
-            self.transplant(z, x)
+        if old_node.left == NIL:
+            child = unwrap(old_node.right)
+            self.transplant(old_node, child)
+
         # case 2
-        elif z.right == NIL:
-            x = unwrap(z.left)
-            self.transplant(z, x)
+        elif old_node.right == NIL:
+            child = unwrap(old_node.left)
+            self.transplant(old_node, child)
+
         # case 3
         else:
-            assert z.right is not None
-            y = self.minimum(z.right)
-            y_orig_color = y.color
-            x = unwrap(y.right)
+            assert old_node.right is not None
+            y = self.minimum(old_node.right)
+            y_original_color = y.color
+            child = unwrap(y.right)
 
-            if y.parent == z:
-                x.parent = y
+            if y.parent == old_node:
+                child.parent = y
             else:
                 assert y.right is not None
                 self.transplant(y, y.right)
-                y.right = z.right
+                y.right = old_node.right
                 y.right.parent = y
 
-            self.transplant(z, y)
-            y.left = z.left
+            self.transplant(old_node, y)
+            y.left = old_node.left
             unwrap(y.left).parent = y
-            y.color = z.color
+            y.color = old_node.color
 
         self.render(f"delete-{key}")
-        if y_orig_color == Color.BLACK:
-            self.delete_fixup(x)
+        if y_original_color == Color.BLACK:
+            self.delete_fixup(child)
 
-    def delete_fixup(self, x: Node):
-        while x != self.root and x.color == Color.BLACK:
-            assert x.parent is not None
-            if x == x.parent.left:
-                w = unwrap(x.parent.right)
+    def delete_fixup(self, old_node: Node):
+        while old_node != self.root and old_node.color == Color.BLACK:
+            assert old_node.parent is not None
+            if old_node == old_node.parent.left:
+                sibling = unwrap(old_node.parent.right)
 
                 # type 1
-                if w.color == Color.RED:
-                    w.color = Color.BLACK
-                    x.parent.color = Color.RED
-                    self.left_rotate(x.parent)
-                    w = unwrap(x.parent.right)
+                if sibling.color == Color.RED:
+                    sibling.color = Color.BLACK
+                    old_node.parent.color = Color.RED
+                    self.left_rotate(old_node.parent)
+                    sibling = unwrap(old_node.parent.right)
                     self.render("delete-fixup-left-rotate")
 
                 # type 2
-                assert w.left is not None
-                assert w.right is not None
-                if w.left.color == Color.BLACK and w.right.color == Color.BLACK:
-                    w.color = Color.RED
-                    x = x.parent
+                assert sibling.left is not None
+                assert sibling.right is not None
+                if (
+                    sibling.left.color == Color.BLACK
+                    and sibling.right.color == Color.BLACK
+                ):
+                    sibling.color = Color.RED
+                    old_node = old_node.parent
                     self.render("delete-fixup-recolor")
                 else:
+
                     # type 3
-                    if w.right.color == Color.BLACK:
-                        w.left.color = Color.BLACK
-                        w.color = Color.RED
-                        self.right_rotate(w)
-                        w = unwrap(x.parent.right)
+                    if sibling.right.color == Color.BLACK:
+                        sibling.left.color = Color.BLACK
+                        sibling.color = Color.RED
+                        self.right_rotate(sibling)
+                        sibling = unwrap(old_node.parent.right)
                         self.render("delete-fixup-right-rotate")
+
                     # type 4
-                    assert w.right is not None
-                    w.color = x.parent.color
-                    x.parent.color = Color.BLACK
-                    w.right.color = Color.BLACK
-                    self.left_rotate(x.parent)
-                    x = self.root
+                    assert sibling.right is not None
+                    sibling.color = old_node.parent.color
+                    old_node.parent.color = Color.BLACK
+                    sibling.right.color = Color.BLACK
+                    self.left_rotate(old_node.parent)
+                    old_node = self.root
                     self.render("delete-fixup-left-rotate")
             else:
-                w = unwrap(x.parent.left)
+                sibling = unwrap(old_node.parent.left)
 
                 # type 1
-                if w.color == Color.RED:
-                    w.color = Color.BLACK
-                    x.parent.color = Color.RED
-                    self.right_rotate(x.parent)
-                    w = unwrap(x.parent.left)
+                if sibling.color == Color.RED:
+                    sibling.color = Color.BLACK
+                    old_node.parent.color = Color.RED
+                    self.right_rotate(old_node.parent)
+                    sibling = unwrap(old_node.parent.left)
                     self.render("delete-fixup-right-rotate")
 
                 # type 2
-                assert w.left is not None
-                assert w.right is not None
+                assert sibling.left is not None
+                assert sibling.right is not None
 
-                if w.right.color == Color.BLACK and w.left.color == Color.BLACK:
-                    w.color = Color.RED
-                    x = x.parent
+                if (
+                    sibling.right.color == Color.BLACK
+                    and sibling.left.color == Color.BLACK
+                ):
+                    sibling.color = Color.RED
+                    old_node = old_node.parent
                     self.render("delete-fixup-recolor")
                 else:
 
                     # type 3
-                    if w.left.color == Color.BLACK:
-                        w.right.color = Color.BLACK
-                        w.color = Color.RED
-                        self.left_rotate(w)
-                        w = unwrap(x.parent.left)
+                    if sibling.left.color == Color.BLACK:
+                        sibling.right.color = Color.BLACK
+                        sibling.color = Color.RED
+                        self.left_rotate(sibling)
+                        sibling = unwrap(old_node.parent.left)
                         self.render("delete-fixup-left-rotate")
 
                     # type 4
-                    assert w.left is not None
+                    assert sibling.left is not None
 
-                    w.color = x.parent.color
-                    x.parent.color = Color.BLACK
-                    w.left.color = Color.BLACK
-                    self.right_rotate(x.parent)
-                    x = self.root
+                    sibling.color = old_node.parent.color
+                    old_node.parent.color = Color.BLACK
+                    sibling.left.color = Color.BLACK
+                    self.right_rotate(old_node.parent)
+                    old_node = self.root
                     self.render("delete-fixup-right-rotate")
 
-        if x.color == Color.RED:
-            x.color = Color.BLACK
+        if old_node.color == Color.RED:
+            old_node.color = Color.BLACK
             self.render("delete-fixup-recolor-x")
 
     def transplant(self, u: Node, v: Node):
@@ -301,19 +305,16 @@ class RedBlackTree:
     def search(self, key: int):
         x = self.root
         while x != NIL and key != x.key:
-            if key < x.key:
-                x = unwrap(x.left)
-            else:
-                x = unwrap(x.right)
+            x = unwrap(x.left if key < x.key else x.right)
         return x
 
     def render_helper(
         self,
         jgraph: JGraph,
         node: Node,
-        height: int,
-        x=0,
+        height=4,
         depth=1,
+        x=0,
         parent_x: int | None = None,
         parent_y: int | None = None,
     ):
@@ -326,7 +327,7 @@ class RedBlackTree:
             exit(1)
 
         y = 1 - depth
-        color = (0, 0, 0) if node.color == Color.BLACK else (1, 0, 0)
+        color = BLACK if node.color == Color.BLACK else RED
         jgraph.draw_node(node.key, x, y, color)
 
         if parent_x is not None and parent_y is not None:
@@ -335,8 +336,8 @@ class RedBlackTree:
         self.render_helper(
             node=unwrap(node.left),
             height=height,
-            x=x - x_offset,
             depth=depth + 1,
+            x=x - x_offset,
             parent_x=x,
             parent_y=y,
             jgraph=jgraph,
@@ -344,8 +345,8 @@ class RedBlackTree:
         self.render_helper(
             node=unwrap(node.right),
             height=height,
-            x=x + x_offset,
             depth=depth + 1,
+            x=x + x_offset,
             parent_x=x,
             parent_y=y,
             jgraph=jgraph,
@@ -355,25 +356,4 @@ class RedBlackTree:
         self.render_helper(
             jgraph=JGraph(title),
             node=self.root,
-            height=4,
         )
-
-    def __len__(self):
-        if self.root == NIL:
-            return 0
-
-        queue = deque()
-        queue.append(self.root)
-
-        size = 0
-
-        while queue:
-            node = queue.popleft()
-            size += 1
-
-            if node.left != NIL:
-                queue.append(node.left)
-            if node.right != NIL:
-                queue.append(node.right)
-
-        return size

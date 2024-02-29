@@ -3,6 +3,9 @@ from pathlib import Path
 from shell import bash
 from shutil import rmtree
 
+RED = (1, 0, 0)
+BLACK = (0, 0, 0)
+
 JGR_DIR = Path("jgr")
 JPG_DIR = Path("jpg")
 PDF_DIR = Path("pdf")
