@@ -40,6 +40,8 @@ To clean run
 make clean
 ```
 
+All development was done on the lab machines, so there shouldn't be any additional setup.
+
 ## Sources
 
 I started with the following red-black tree implementation:
