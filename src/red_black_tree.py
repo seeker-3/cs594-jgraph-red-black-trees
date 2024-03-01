@@ -163,8 +163,8 @@ class RedBlackTree:
         if old_node == NIL:
             return
 
-        y = old_node
-        y_original_color = y.color
+        # y = old_node
+        y_original_color = old_node.color
 
         # case 1
         if old_node.left == NIL:
