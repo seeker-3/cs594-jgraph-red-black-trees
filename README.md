@@ -2,6 +2,10 @@
 
 ![Red Black Tree](example.gif)
 
+## Student Information
+
+Abram Bradley (abradl11)
+
 ## Usage
 
 Input file in the form of `i|d number`, where `i` and `d` are the operations insert and delete, followed by a number, separated by any amount of whitespace.
